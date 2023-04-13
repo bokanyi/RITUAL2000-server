@@ -1,9 +1,11 @@
 import mongoose, { Schema, InferSchemaType } from "mongoose"
 
 const userSchema = new Schema ({ 
+    country: {type: String},
     display_name: {type: String},
     email: {type: String},
-    id: {type: String},
+    spotifyId: {type: String},
+    spotifyUri: {type: String},
     access_token:  {type: String},
     refresh_token: {type: String},
 })

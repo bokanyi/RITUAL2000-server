@@ -53,9 +53,11 @@ router.post('/', verify(LoginRequestSchema), async (req: Request, res: Response)
           refresh_token: tokens?.refresh_token,
         })
     if (!findUser) await User.create({
+        country: user.country,
         display_name: user.display_name,
         email: user.email,
-        id: user.id,
+        spotifyId: user.id,
+        spotifyUri: user.uri,
         access_token:  tokens?.access_token,
         refresh_token: tokens?.refresh_token,
     })
@@ -64,7 +66,13 @@ router.post('/', verify(LoginRequestSchema), async (req: Request, res: Response)
     if (!loggedInUser) return res.sendStatus(500)
     
 
-    const sessionToken = jwt.sign({data: {...user, _id: loggedInUser?._id} }, secretKey)
+    const sessionToken = jwt.sign({data: {
+        display_name: loggedInUser.display_name,
+        email: loggedInUser.email,
+        spotifyId: loggedInUser.id,
+        _id: loggedInUser?._id
+    }}, secretKey)
+    
     res.json(sessionToken) 
     // res.json(tokens)
     
