@@ -66,12 +66,12 @@ router.post('/', verify(LoginRequestSchema), async (req: Request, res: Response)
     if (!loggedInUser) return res.sendStatus(500)
     
 
-    const sessionToken = jwt.sign({data: {
+    const sessionToken = jwt.sign({
         display_name: loggedInUser.display_name,
         email: loggedInUser.email,
         spotifyId: loggedInUser.id,
         _id: loggedInUser?._id
-    }}, secretKey)
+    }, secretKey)
     
     res.json(sessionToken) 
     // res.json(tokens)
