@@ -3,6 +3,7 @@ dotenv.config()
 import app from "./app"
 import mongoose from "mongoose"
 
+
 const mongoUrl = process.env.MONGO_URL as string
 const port = process.env.PORT
 
@@ -16,5 +17,6 @@ const connectDB = async () => {
 }
 
 connectDB()
+
 
 app.listen(port, ()=> { console.log(`⚡️ Server is running at http://localhost:${port}`)})

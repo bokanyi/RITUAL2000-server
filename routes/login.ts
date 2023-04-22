@@ -36,22 +36,23 @@ if (!secretKey) throw "SecretKey is required."
 
 router.post('/', verify(LoginRequestSchema), async (req: Request, res: Response) => {
     const loginRequest = req.body as LoginRequest
-    console.log(loginRequest)
+    // console.log(loginRequest)
     const tokens = await getAccessToken(loginRequest.code)
     const access_token = tokens?.access_token
-    console.log(tokens)
+    // console.log(tokens)
 
     if (!access_token) return res.sendStatus(401)
 
     const user =  (await spotifyApi.getMe()).body
     if (!user) return res.sendStatus(403)
 
-    console.log(user)
+    // console.log("user in login", user)
     
-    const findUser = await User.findOneAndUpdate({id: user.id}, 
+    const findUser = await User.findOneAndUpdate({spotifyId: user.id}, 
         { access_token:  tokens?.access_token,
           refresh_token: tokens?.refresh_token,
         })
+    // console.log("finduser in login", findUser)
     if (!findUser) await User.create({
         country: user.country,
         display_name: user.display_name,
@@ -62,7 +63,8 @@ router.post('/', verify(LoginRequestSchema), async (req: Request, res: Response)
         refresh_token: tokens?.refresh_token,
     })
         
-    const loggedInUser = await User.findOne({id: user.id})
+    const loggedInUser = await User.findOne({spotifyId: user.id})
+    // console.log("loggedInUser in login", loggedInUser)
     if (!loggedInUser) return res.sendStatus(500)
     
 
@@ -73,6 +75,7 @@ router.post('/', verify(LoginRequestSchema), async (req: Request, res: Response)
         _id: loggedInUser?._id
     }, secretKey)
     
+    // console.log(sessionToken)
     res.json(sessionToken) 
     // res.json(tokens)
     

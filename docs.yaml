@@ -1,0 +1,357 @@
+openapi: 3.0.3
+info:
+  title:  Ritual - OpenAPI 3.0
+  description: |-
+    This is a Spotify based music playlist generator Server based on the OpenAPI 3.0 specification. 
+    
+    Some useful links:
+    - [github repository]( )
+
+  contact:
+    email: bokanyimi@gmail.com
+
+  version: 1.0.0
+servers:
+  - url: http://localhost:8000
+  
+tags:
+  - name: login
+    description: Login with spotify oauth flow
+    externalDocs:
+      description: Find out more
+      url: https://developer.spotify.com/documentation/web-api/concepts/authorization
+    
+  - name: playlist
+    description: Get, create, delete playlists 
+    
+  - name: player
+    description: Play selected playlist
+
+
+    
+paths:
+  /login:
+    post:
+      tags:
+        - login
+      summary: Login and create user in the database.
+      description: User can log in only with spotify account. 
+      operationId: loginUser
+      requestBody:
+        description: code from spotify authentication flow
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                code: 
+                  type: string
+        required: true
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                type: string
+        '401':
+          description: unauthorized
+        '403':
+          description: user not found
+        '500':
+          description: server error
+      security:
+        - spotify_oauth: []
+ 
+
+  /playlist:
+    get:
+      tags:
+        - playlist
+      summary: Get library
+      description: Get the user all created playlists
+      operationId: getPlaylists
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Playlist'          
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/Playlist'
+        '400':
+          description: Invalid ID token
+        '403':
+          description: user not found
+        '500':
+          description: server error
+      security:
+        - bearerAuth: []
+
+    post:
+      tags:
+        - playlist
+      summary: Add a new playlist to the library
+      description: Add a new playlist to the library
+      operationId: postPlaylist
+      requestBody:
+        description: Create a new playlist to the library
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PlaylistRequest'
+          application/xml:
+            schema:
+              $ref: '#/components/schemas/PlaylistRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PlaylistRequest'
+        required: true
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Playlist'          
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/Playlist'
+        '400':
+          description: Invalid ID token, or invalid request
+        '403':
+          description: user not found
+        '500':
+          description: server error
+      security:
+        - bearerAuth: []
+
+  /playlist/{playlistId}:
+    get:
+      tags:
+        - playlist
+      summary: Find a playlist by ID
+      description: Returns a single pet
+      operationId: PlaylistById
+      parameters:
+        - name: playlistId
+          in: path
+          description: ID of playlist to return
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SpotifyPlaylist' 
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/SpotifyPlaylist' 
+        '400':
+          description: Invalid ID 
+        '403':
+          description: User not found
+        '404':
+          description: Playlist not found
+      security:
+        - bearerAuth: []
+        
+    delete:
+      tags:
+        - playlist
+      summary: Deletes a playlist
+      description: delete a playlist
+      operationId: deletePlaylist
+      parameters:
+        - name: playlistId
+          in: path
+          description: Playlist id to delete
+          required: true
+          schema:
+            type: string
+      responses:
+        '400':
+          description: Invalid ID 
+        '403':
+          description: User not found
+        '404':
+          description: Playlist not found
+      security:
+        - bearerAuth: []
+
+components:
+  schemas:
+    User:
+      type: object
+      properties:
+        display_name:
+          type: string
+          example: theUser
+        email:
+          type: string
+          example: user@email.com
+        spotifyId:
+          type: string
+          example: 123456asdfg
+        _id:
+          type: string
+          example: asdfg12345
+      xml:
+        name: user
+    Playlist:
+      required:
+        - name
+        - user
+      type: object
+      properties:
+        _id:
+          type: string
+          example: 123456asdfg
+        user:
+          type: string
+          example: asdfg12345
+        name:
+          type: string
+          example: playlistName
+        description:
+          type: string
+          example: playlistDescription
+        spotifyId:
+          type: string
+          example: 123456asdfg
+        createdAt:
+          type: string
+          example: 023-04-17T14:59:33.517Z
+        updatedAt:
+          type: string
+          example: 023-04-17T14:59:33.517Z
+      xml:
+        name: playlist
+    SpotifyPlaylist:
+      type: object
+      properties:
+        collaborative:
+          type: string
+          example: 123456asdfg
+        description:
+          type: string
+          example: asdfg12345
+        external_urls:
+          type: string
+          example: playlistName
+        followers:
+          type: string
+          example: playlistDescription
+        href:
+          type: string
+          example: 123456asdfg
+        id:
+          type: string
+          example: 
+        images:
+          type: string
+          example: 
+        name:
+          type: string
+          example: 
+        owner:
+          type: string
+          example: 
+        public:
+          type: string
+          example: 
+        snapshot_id:
+          type: string
+          example: 
+        tracks:
+          type: string
+          example: 
+    PlaylistRequest:
+      required:
+        - _id
+        - name
+        - user
+        - seed_genres
+      type: object
+      properties:
+        _id:
+          type: string
+          example: 123456asdfg
+        user:
+          type: string
+          example: asdfg12345
+        name:
+          type: string
+          example: playlistName
+        description:
+          type: string
+          example: playlistDescription
+        seed_genres:
+          type: string
+          example: tecno,classical
+        target_danceability:
+          type: number
+          example: 0.5
+        min_instrumentalness:
+          type: number
+          example: 0.5
+        max_instrumentalness:
+          type: number
+          example: 0.5
+        min_popularity:
+          type: number
+          example: 0.5
+        min_tempo:
+          type: number
+          example: 0.5
+      xml:
+        name: playlistRequest
+    ApiResponse:
+      type: object
+      properties:
+        code:
+          type: integer
+          format: int32
+        type:
+          type: string
+        message:
+          type: string
+      xml:
+        name: '##default'
+  requestBodies:
+    Login:
+      description: Pet object that needs to be added to the store
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/User'
+        application/xml:
+          schema:
+            $ref: '#/components/schemas/User'
+    UserArray:
+      description: List of user object
+      content:
+        application/json:
+          schema:
+            type: array
+            items:
+              $ref: '#/components/schemas/User'
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT 
+    spotify_oauth:
+      type: oauth2
+      flows:
+        implicit:
+          authorizationUrl: https://accounts.spotify.com/authorize
+          scopes:
+            user: user-read-email\user-read-private  
+            playlist: playlist-read-private \ playlist-modify-private \ playlist-modify-public
+            playback: streaming
