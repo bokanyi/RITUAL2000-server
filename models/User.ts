@@ -4,8 +4,8 @@ const userSchema = new Schema ({
     country: {type: String},
     display_name: {type: String},
     email: {type: String},
+    spotify: {type: String},
     spotifyId: {type: String},
-    spotifyUri: {type: String},
     access_token:  {type: String},
     refresh_token: {type: String},
 })

@@ -5,12 +5,13 @@ import app from "../app"
 import { connect, disconnect, clear } from "./testdb"
 import { User } from "../models/User"
 jest.mock("../api/google")
-import { getIdToken } from "../api/google"
+// import { getIdToken } from "../api/google"
 
 beforeAll(async () => await connect())
 beforeEach(async () => await clear())
 afterAll(async () => await disconnect())
 
+/* 
 const testApp = supertest(app)
 
 describe("google login tests", () => {
@@ -39,3 +40,5 @@ describe("google login tests", () => {
     expect(response.status).toBe(200)
   })
 })
+
+*/

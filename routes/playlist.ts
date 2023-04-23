@@ -19,7 +19,21 @@ const playlistZodSchema = z.object({
   createdAt: z.date().optional(),
   updatedAt: z.date().optional(),
 });
+
 type playlistZodType = z.infer<typeof playlistZodSchema>;
+
+type Tracks ={
+  artist: string,
+  name: string,
+  uri: string
+}
+
+type CurrentPlaylist ={
+  name: string,
+  description: string,
+  spotify: string,
+  tracks: Tracks[]
+}
 
 router.get("/", verifyToken, async (req: Request, res: Response) => {
   if (!res.locals.user) return res.status(403).json("User not found.");
@@ -37,24 +51,34 @@ router.get("/:id", verifyToken, async (req: Request, res: Response) => {
   try {
     const id = req.params.id;
     console.log("Playlist id", id);
-    // find playlsit in mongodb
+    // find playlist in mongodb
     const foundPlaylist = await Playlist.findOne({ _id: id });
     if (!foundPlaylist) throw new Error("Playlist not found.");
     console.log("foundPlaylist", foundPlaylist);
     //get playlist from spotifyapi
-    const currentPlaylist = await spotifyApi.getPlaylist(
+    const playlist = await spotifyApi.getPlaylist(
       foundPlaylist.spotifyId
     );
-    console.log("currentplaylist", currentPlaylist);
-    if (!currentPlaylist) return res.status(404).json("Playlist not found.");
-    return res.status(200).json(currentPlaylist.body);
+    console.log("playlist", playlist);
+    if (!playlist) return res.status(404).json("Playlist not found.");
+    const  currentPlaylist ={
+      name: playlist.body.name,
+      description: playlist.body.description,
+      spotify: playlist.body.external_urls.spotify,
+      tracks: playlist.body.tracks.items.map((item) => {
+        return ({artist: item.track?.artists[0].name,
+          name: item.track?.name,
+          uri: item.track?.uri})
+       })
+    }
+    return res.status(200).json(currentPlaylist);
   } catch (error) {
     return res.sendStatus(400);
   }
 });
 
 router.post(
-  "/",
+  "/recommendations",
   // verify(playlistZodSchema),
   verifyToken,
   async (req: Request, res: Response) => {
@@ -66,8 +90,8 @@ router.post(
     // const playlistData = req.body as playlistZodType
 
     // Create an array of tracks
-
-    let tracks: string[] = [];
+   
+    let tracks: Tracks[] = [];
 
     try {
       const data = await spotifyApi.getRecommendations({
@@ -89,20 +113,42 @@ router.post(
         // target_tempo: req.body.target_tempo,
       });
       data.body.tracks.map((track) => {
-        tracks.push(track.uri);
+        tracks.push({
+          artist: track.artists[0].name,
+          name: track.name,
+          uri: track.uri,
+        });
       });
       console.log("getRecommendations tracks", tracks);
     } catch (error) {
       console.log("Something went wrong!", error);
       return res.status(400).json(error);
     }
+    return res.status(201).json(tracks);
 
+  }
+);
+
+router.post(
+  "/",
+  // verify(playlistZodSchema),
+  verifyToken,
+  async (req: Request, res: Response) => {
+    if (!res.locals.user) return res.status(403).json("User not found.");
+    console.log(req.body.user);
+    if (req.body.user !== res.locals.user)
+      return res.status(405).json("User not found.");
     // Create a private playlist
 
+    const name = req.body.name
+    const tracks = req.body.tracks
+        
+    console.log("tracks", tracks)
+    console.log("name", name)
     let spotifyId = "";
 
     try {
-      const data = await spotifyApi.createPlaylist(req.body.name, {
+      const data = await spotifyApi.createPlaylist(name, {
         description: req.body.description,
         public: false,
       });
@@ -116,10 +162,10 @@ router.post(
     // Add tracks to a playlist
 
     try {
-        const data = await spotifyApi.addTracksToPlaylist(spotifyId, tracks)
+      const data = await spotifyApi.addTracksToPlaylist(spotifyId, tracks);
     } catch (error) {
-        console.log("Something went wrong!", error);
-        return res.status(400).json(error);
+      console.log("Something went wrong!", error);
+      return res.status(400).json(error);
     }
 
     /*
