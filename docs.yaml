@@ -26,8 +26,6 @@ tags:
     
   - name: player
     description: Play selected playlist
-
-
     
 paths:
   /login:

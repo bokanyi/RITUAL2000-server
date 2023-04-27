@@ -89,24 +89,43 @@ router.post(
 
     // const playlistData = req.body as playlistZodType
 
+    //get recommendation seeds
+
+    let seed_genres = []
+    try {
+      const allGenres = await spotifyApi.getAvailableGenreSeeds()
+      const genres = allGenres.body.genres
+      let number = Math.floor(parseInt(req.body.seed_genres)*(genres.length-1)/360)
+      console.log(number)
+      seed_genres.push(genres[number])
+    } catch (error) {
+      console.log("Something went wrong!", error);
+      return res.status(400).json(error);
+    }
+
+    console.log("seed_genres", seed_genres)
+
     // Create an array of tracks
    
+
     let tracks: Tracks[] = [];
 
     try {
       const data = await spotifyApi.getRecommendations({
-        limit: 30,
-        // seed_artists: ['6mfK6Q2tzLMEchAr0e9Uzu', '4DYFVNKZ1uixa6SQTvzQwJ'],
-        seed_genres: req.body.seed_genres,
-        // seed_tracks: ['6mfK6Q2tzLMEchAr0e9Uzu', '4DYFVNKZ1uixa6SQTvzQwJ'],
+        limit: 20,
+        // seed_artists: [],
+        seed_genres: seed_genres,
+        // seed_tracks: [],
         target_danceability: req.body.target_danceability,
         // min_duration_ms: req.body.min_duration_ms,
         // max_duration_ms: req.body.max_duration_ms,
         // target_duration_ms: req.body.target_duration_ms,
         // min_energy: 0.4,
-        min_instrumentalness: req.body.min_instrumentalness,
-        max_instrumentalness: req.body.max_instrumentalness,
-        min_popularity: req.body.min_popularity,
+
+        // min_instrumentalness: req.body.min_instrumentalness,
+        // max_instrumentalness: req.body.max_instrumentalness,
+        // min_popularity: req.body.min_popularity,
+
         // max_popularity: req.body.max_popularity,
         min_tempo: req.body.min_tempo,
         max_tempo: req.body.max_tempo,
@@ -119,7 +138,7 @@ router.post(
           uri: track.uri,
         });
       });
-      console.log("getRecommendations tracks", tracks);
+      // console.log("getRecommendations tracks", tracks);
     } catch (error) {
       console.log("Something went wrong!", error);
       return res.status(400).json(error);

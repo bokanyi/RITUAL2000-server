@@ -79,7 +79,7 @@ router.post(
         spotify: user.external_urls.spotify,
         _id: loggedInUser?._id,
       },
-      secretKey
+      secretKey, { expiresIn: '1h'}
     );
 
     // console.log(sessionToken)
