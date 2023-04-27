@@ -55,7 +55,9 @@ router.get("/:id", verifyToken, async (req: Request, res: Response) => {
     const foundPlaylist = await Playlist.findOne({ _id: id });
     if (!foundPlaylist) throw new Error("Playlist not found.");
     console.log("foundPlaylist", foundPlaylist);
-    //get playlist from spotifyapi
+
+    /*
+    //get playlist from spotifyapi ez mar nem kell
     const playlist = await spotifyApi.getPlaylist(
       foundPlaylist.spotifyId
     );
@@ -71,7 +73,8 @@ router.get("/:id", verifyToken, async (req: Request, res: Response) => {
           uri: item.track?.uri})
        })
     }
-    return res.status(200).json(currentPlaylist);
+    */
+    return res.status(200).json(foundPlaylist);
   } catch (error) {
     return res.sendStatus(400);
   }
@@ -187,20 +190,34 @@ router.post(
       return res.status(400).json(error);
     }
 
-    /*
-    await spotifyApi.addTracksToPlaylist(spotifyId, tracks).then(
-      function (data) {
-        console.log("Added tracks to playlist!");
-      },
-      function (err) {
-        console.log("Something went wrong!", err);
-        return res.status(400).json(err);
-      }
-    );
-    */
-
     console.log("spotifyId", spotifyId);
     // const newPlaylist = await Playlist.create<PlaylistType>(playlistData)
+    
+    //get the playlist data and save to mongo
+
+    try {
+    const playlist = await spotifyApi.getPlaylist(
+      spotifyId
+    );
+    console.log("playlist", playlist);
+    if (!playlist) return res.status(404).json("Playlist not found.");
+    const  newPlaylist = await Playlist.create({
+      user: req.body.user,
+      name: playlist.body.name,
+      description: playlist.body.description,
+      spotify: playlist.body.external_urls.spotify,
+      spotifyId: spotifyId,
+      tracks: playlist.body.tracks.items.map((item) => {
+        return ({artist: item.track?.artists[0].name,
+          name: item.track?.name,
+          uri: item.track?.uri})
+       })
+    })
+    return res.status(200).json(newPlaylist);
+  } catch (error) {
+    return res.sendStatus(400);
+  }
+  /*
     const newPlaylist = await Playlist.create({
       user: req.body.user,
       name: req.body.name,
@@ -208,6 +225,7 @@ router.post(
       spotifyId: spotifyId,
     });
     return res.status(201).json(newPlaylist);
+    */
   }
 );
 

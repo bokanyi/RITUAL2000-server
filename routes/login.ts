@@ -89,31 +89,3 @@ router.post(
 );
 
 export default router;
-
-/*
-    try {
-        const response : AxiosResponse = await axios.get(
-            "https://api.spotify.com/v1/me", {
-                headers: {
-                    "Authorization" : `Bearer ${access_token}`
-                }
-            })
-        const result = response.data
-        console.log(response)
-    } catch (error) {
-        console.log("getme error", error)
-    }
-
-    */
-
-// spotifyApi.getMe().then(function(data) {
-//     console.log('Some information about the authenticated user', data.body);
-//   }, function(err) {
-//     console.log('Something went wrong with the authentication!', err);
-//   });
-
-// const payload: unknown = jwt.decode(idToken)
-// const result = safeParse(Payload, payload)
-// if (!result) return res.sendStatus(500)
-
-// const data : UserType = result
