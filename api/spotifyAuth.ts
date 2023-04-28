@@ -10,7 +10,7 @@ const client_secret = process.env.CLIENT_SECRET
 
 const Response = z.object({
     access_token: z.string(),
-    token_type: z.literal("Bearer"),
+    token_type: z.string(),
     scope: z.string(),
     expires_in: z.number(),
     refresh_token: z.string()

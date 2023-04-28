@@ -20,7 +20,7 @@ type LoginRequest = z.infer<typeof LoginRequestSchema>;
 
 const SpotifyResponse = z.object({
   access_token: z.string(),
-  token_type: z.literal("Bearer"),
+  token_type: z.string(),
   scope: z.string(),
   expires_in: z.number(),
   refresh_token: z.string(),
@@ -38,26 +38,35 @@ router.post(
     const loginRequest = req.body as LoginRequest;
     // console.log(loginRequest)
     const tokens = await getAccessToken(loginRequest.code);
-    const access_token = tokens?.access_token;
-    // console.log(tokens)
+    if (!tokens) return res.sendStatus(401)
+    const result = safeParse(SpotifyResponse, tokens)
+    if (!result) return res.sendStatus(500)
+    const access_token = result.access_token;
+    console.log(tokens)
 
     if (!access_token) return res.sendStatus(401);
 
-    const user = (await spotifyApi.getMe()).body;
-    if (!user) return res.sendStatus(403);
+    const data =  (await spotifyApi.getMe())
+    console.log( "spotifyApi.getMe", data)
+
+    const user = data.body
+
+    // const user = (await spotifyApi.getMe()).body;
+    // if (!user) return res.sendStatus(403);
 
     console.log("user in login", user)
 
-    const findUser = await User.findOneAndUpdate(
+    const foundUser = await User.findOneAndUpdate(
       { spotifyId: user.id },
       {
         access_token: tokens?.access_token,
         refresh_token: tokens?.refresh_token,
       }
     );
-    // console.log("finduser in login", findUser)
-    if (!findUser)
-      await User.create({
+   
+
+    if (!foundUser)
+       await User.create<UserType>({
         country: user.country,
         display_name: user.display_name,
         email: user.email,

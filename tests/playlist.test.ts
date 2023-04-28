@@ -12,7 +12,29 @@ afterAll(async () => await disconnect())
 
 const testApp = supertest(app)
 
+describe("POST /api/playlist/recommendations", () => {
+  it("should return status 401 when user data not sent and body is empty", async () => {
+    // when
+    const response = await testApp.post("/api/playlist/recommendations")
+    // then
+    expect(response.status).toBe(401)
+  })
+})
+
 /*
+
+describe("POST /api/playlist/recommendations", () => {
+  it("should return status 401 when user data not sent and body is empty", async () => {
+    //given
+    const user = await User.create({ sub: "1234567", email: "test@user.com" })
+    await Review.create({ user: user._id, movieId: "1234", message: "test" })
+    // when
+    const response = await testApp.post("/api/playlist/recommendations")
+    // then
+    expect(response.status).toBe(401)
+  })
+})
+
 
 describe("POST /api/review", () => {
   it("should return status 400 when req body is empty", async () => {

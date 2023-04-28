@@ -6,6 +6,7 @@ import { Playlist, PlaylistType } from "../models/Playlist";
 import { User } from "../models/User";
 import { verifyToken } from "../middlewares/verifyToken";
 import { spotifyApi } from "../api/spotifyAuth";
+import { safeParse } from "../utilities/safeParse";
 
 const router = express.Router();
 
@@ -15,10 +16,27 @@ const playlistZodSchema = z.object({
   user: z.string().transform((val) => new ObjectId(val)),
   name: z.string(),
   description: z.string(),
+  spotify: z.string(),
   spotifyId: z.string(),
+  tracks: z.array(z.object({
+    artist: z.string(),
+    name: z.string(),
+    uri: z.string()
+  })),
   createdAt: z.date().optional(),
   updatedAt: z.date().optional(),
 });
+
+// user: req.body.user,
+// name: playlist.body.name,
+// description: playlist.body.description,
+// spotify: playlist.body.external_urls.spotify,
+// spotifyId: spotifyId,
+// tracks: playlist.body.tracks.items.map((item) => {
+//   return ({artist: item.track?.artists[0].name,
+//     name: item.track?.name,
+//     uri: item.track?.uri})
+//  })
 
 type playlistZodType = z.infer<typeof playlistZodSchema>;
 
@@ -55,25 +73,6 @@ router.get("/:id", verifyToken, async (req: Request, res: Response) => {
     const foundPlaylist = await Playlist.findOne({ _id: id });
     if (!foundPlaylist) throw new Error("Playlist not found.");
     console.log("foundPlaylist", foundPlaylist);
-
-    /*
-    //get playlist from spotifyapi ez mar nem kell
-    const playlist = await spotifyApi.getPlaylist(
-      foundPlaylist.spotifyId
-    );
-    console.log("playlist", playlist);
-    if (!playlist) return res.status(404).json("Playlist not found.");
-    const  currentPlaylist ={
-      name: playlist.body.name,
-      description: playlist.body.description,
-      spotify: playlist.body.external_urls.spotify,
-      tracks: playlist.body.tracks.items.map((item) => {
-        return ({artist: item.track?.artists[0].name,
-          name: item.track?.name,
-          uri: item.track?.uri})
-       })
-    }
-    */
     return res.status(200).json(foundPlaylist);
   } catch (error) {
     return res.sendStatus(400);
@@ -89,8 +88,6 @@ router.post(
     console.log(req.body.user);
     if (req.body.user !== res.locals.user)
       return res.status(405).json("User not found.");
-
-    // const playlistData = req.body as playlistZodType
 
     //get recommendation seeds
 
@@ -201,7 +198,8 @@ router.post(
     );
     console.log("playlist", playlist);
     if (!playlist) return res.status(404).json("Playlist not found.");
-    const  newPlaylist = await Playlist.create({
+
+    const newPlaylist = {
       user: req.body.user,
       name: playlist.body.name,
       description: playlist.body.description,
@@ -212,8 +210,13 @@ router.post(
           name: item.track?.name,
           uri: item.track?.uri})
        })
-    })
-    return res.status(200).json(newPlaylist);
+    }
+    const result = safeParse(playlistZodSchema, newPlaylist )
+    if (!result) {
+      return res.sendStatus(500);
+    }
+    const savePlaylist = await Playlist.create<PlaylistType>(result)
+    return res.status(200).json(savePlaylist);
   } catch (error) {
     return res.sendStatus(400);
   }
