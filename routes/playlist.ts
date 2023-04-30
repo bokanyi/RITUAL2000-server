@@ -242,7 +242,7 @@ router.delete("/:id", verifyToken, async (req: Request, res: Response) => {
   // if (!foundPlaylist) throw new Error("Playlist not found.")
   if (!foundPlaylist) return res.sendStatus(404).json("Playlist not found.");
   console.log("foundPlaylist", foundPlaylist);
-  return res.status(200).json("Playlist  deleted");
+  return res.status(200).json("Playlist deleted.");
   // } catch (error) {
   //     return res.sendStatus(404).json("Playlist not found")
   // }
