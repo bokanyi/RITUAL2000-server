@@ -24,8 +24,13 @@ tags:
   - name: playlist
     description: Get, create, delete playlists 
     
+  - name: user
+    description: Delete user account 
+    
   - name: player
     description: Play selected playlist
+
+
     
 paths:
   /login:
@@ -146,10 +151,10 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/SpotifyPlaylist' 
+                $ref: '#/components/schemas/Playlist' 
             application/xml:
               schema:
-                $ref: '#/components/schemas/SpotifyPlaylist' 
+                $ref: '#/components/schemas/Playlist' 
         '400':
           description: Invalid ID 
         '403':
@@ -168,7 +173,31 @@ paths:
       parameters:
         - name: playlistId
           in: path
-          description: Playlist id to delete
+          description: Playlist Id to delete
+          required: true
+          schema:
+            type: string
+      responses:
+        '400':
+          description: Invalid ID 
+        '403':
+          description: User not found
+        '404':
+          description: Playlist not found
+      security:
+        - bearerAuth: []
+        
+  /user{userId}:
+    delete:
+      tags:
+        - user
+      summary: Delete the user account
+      description: Delete the user account
+      operationId: deleteAccount
+      parameters:
+        - name: userId
+          in: path
+          description: User Id to delete
           required: true
           schema:
             type: string
@@ -219,9 +248,26 @@ components:
         description:
           type: string
           example: playlistDescription
+        spotify:
+          type: string
+          example: spotifyUrl          
         spotifyId:
           type: string
           example: 123456asdfg
+        tracks:
+          type: array
+          items:
+            type: object
+            properties:
+              artist: 
+                type: string
+                example: artist
+              name: 
+                type: string
+                example: trackName
+              uri: 
+                type: string
+                example: trackUri
         createdAt:
           type: string
           example: 023-04-17T14:59:33.517Z
