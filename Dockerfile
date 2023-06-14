@@ -1,5 +1,8 @@
-FROM --platform=linux/amd64 node:18
-ADD . /appdir
+FROM --platform=linux/amd64 node:18-alpine
 WORKDIR /appdir
-CMD ["npm", "start"]
+COPY package*.json ./
+RUN npm install
+COPY . .
+RUN npm run build
 EXPOSE 8000
+CMD [ "npm", "start" ]

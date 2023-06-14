@@ -5,7 +5,7 @@ import app from "../app"
 import { connect, disconnect, clear } from "./testdb"
 import { User } from "../models/User"
 jest.mock("../api/spotifyAuth") 
-import { getAccessToken, spotifyApi } from "../api/spotifyAuth"
+import { getAccessToken, getMe, spotifyApi } from "../api/spotifyAuth"
 
 
 beforeAll(async () => await connect())
@@ -40,51 +40,20 @@ describe("login tests", () => {
     }
 
 
-    const currentUserProfile = {
-      body: {
-        birthdate: "string",
-        country: 'string',
-        display_name: 'fake_user',
-        email: 'hello@gmail.com',
-        explicit_content: { filter_enabled: false, filter_locked: false },
-        external_urls: {
-          spotify: 'https://open.spotify.com/user/12345abcd'
-        },
-        followers: { href: null, total: 0 },
-        href: 'https://api.spotify.com/v1/users/12345abcd',
-        id: '12345abcd',
-        images: [],
-        product: 'premium',
-        type: 'user' as const,
-        uri: 'spotify:user:12345abcd'
+    const currentUserProfile ={
+      country: 'HU',
+      display_name: 'Imre',
+      email: 'bokanyimi@gmail.com',
+      external_urls: {
+        spotify: 'https://open.spotify.com/user/ri2p862rozmvd7mdzdoqnr4ow'
       },
-      headers: {
-        'content-type': 'application/json; charset=utf-8',
-        'cache-control': 'private, max-age=0',
-        vary: 'Authorization',
-        'x-robots-tag': 'noindex, nofollow',
-        'access-control-allow-origin': '*',
-        'access-control-allow-headers': 'Accept, App-Platform, Authorization, Content-Type, Origin, Retry-After, Spotify-App-Version, X-Cloud-Trace-Context, client-token, content-access-token',
-        'access-control-allow-methods': 'GET, POST, OPTIONS, PUT, DELETE, PATCH',
-        'access-control-allow-credentials': 'true',
-        'access-control-max-age': '604800',
-        'content-encoding': 'gzip',
-        'strict-transport-security': 'max-age=31536000',
-        'x-content-type-options': 'nosniff',
-        date: 'Fri, 28 Apr 2023 18:42:08 GMT',
-        server: 'envoy',
-        via: 'HTTP/2 edgeproxy, 1.1 google',
-        'alt-svc': 'h3=":443"; ma=2592000,h3-29=":443"; ma=2592000',
-        connection: 'close',
-        'transfer-encoding': 'chunked'
-      },
-      statusCode: 200
+      id: 'ri2p862rozmvd7mdzdoqnr4ow'
     }
     
     const mockedGetIdToken = jest.mocked(getAccessToken)
     mockedGetIdToken.mockReturnValueOnce(Promise.resolve(token))
 
-    const mockedUser = jest.mocked((spotifyApi.getMe))
+    const mockedUser = jest.mocked(getMe)
     mockedUser.mockReturnValueOnce(Promise.resolve(currentUserProfile))
   
     // when

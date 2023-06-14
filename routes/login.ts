@@ -1,20 +1,22 @@
 import express, { Request, Response } from "express";
 import jwt from "jsonwebtoken";
 import { z } from "zod";
-import { getAccessToken, spotifyApi } from "../api/spotifyAuth";
+import { getAccessToken, getMe } from "../api/spotifyAuth";
 import { safeParse } from "../utilities/safeParse";
 import { verify } from "../middlewares/verify";
 import { User, UserType } from "../models/User";
 
-const redirect_uri = process.env.REDIRECT_URI;
-const client_id = process.env.CLIENT_ID;
-const client_secret = process.env.CLIENT_SECRET;
+// const redirect_uri = process.env.REDIRECT_URI;
+// const client_id = process.env.CLIENT_ID;
+// const client_secret = process.env.CLIENT_SECRET;
 
 const router = express.Router();
 
 const LoginRequestSchema = z.object({
   code: z.string(),
 });
+
+
 
 type LoginRequest = z.infer<typeof LoginRequestSchema>;
 
@@ -45,19 +47,14 @@ router.post(
     console.log(tokens)
 
     if (!access_token) return res.sendStatus(401);
-
-    const data =  (await spotifyApi.getMe())
-    console.log( "spotifyApi.getMe", data)
-
-    const user = data.body
-
-    // const user = (await spotifyApi.getMe()).body;
-    // if (!user) return res.sendStatus(403);
+   
+    const user = await getMe()
 
     console.log("user in login", user)
 
+    if (!user) return res.status(500).json("Spotify account couldn`t be loaded.")
     const foundUser = await User.findOneAndUpdate(
-      { spotifyId: user.id },
+      { spotifyId: user.id},
       {
         access_token: tokens?.access_token,
         refresh_token: tokens?.refresh_token,
@@ -93,7 +90,6 @@ router.post(
 
     // console.log(sessionToken)
     res.json(sessionToken);
-    // res.json(tokens)
   }
 );
 
